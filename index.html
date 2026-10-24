@@ -91,7 +91,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row:hover{transform:translateX(2px)}
 .row .pos{width:28px;text-align:center;font-weight:900;font-size:17px;font-style:italic}
 .av{position:relative;flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid var(--tc);display:grid;place-items:center;font-weight:700;font-size:14px;overflow:hidden}
-.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.av img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;object-position:center 14%}
 .who{flex:1;min-width:0;line-height:1.1;display:flex;flex-direction:column}
 .who .fn{font-size:11px;color:#cfcfd6}
 .who .ln{font-weight:900;font-size:16px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -138,6 +138,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rrow .pt{text-align:right;font-weight:900}
 .link{display:inline-block;margin-top:14px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);color:#dcdce2;font-size:14px;font-weight:600;background:rgba(0,0,0,.25)}
 footer{max-width:1180px;margin:28px auto 0;padding:0 16px;color:#6d6d76;font-size:12px;line-height:1.5;text-align:center}
+/* fase 2 */
+.dhead{min-height:150px}
+.dhead h2{font-size:clamp(22px,7vw,30px);position:relative;z-index:1}
+.dhead .av{z-index:1}
+.dhead .fav{position:relative;z-index:2}
+.dhead .big{z-index:0}
+.dph{position:absolute;right:0;top:0;bottom:0;width:44%;z-index:0;pointer-events:none;-webkit-mask-image:linear-gradient(to left,#000 40%,transparent);mask-image:linear-gradient(to left,#000 40%,transparent)}
+.dph img{width:100%;height:100%;object-fit:cover;object-position:center 12%;opacity:.92}
+.stats.c4{grid-template-columns:repeat(4,1fr)}
+.stats.c2{grid-template-columns:repeat(2,1fr)}
+.bio p{line-height:1.55;color:#dcdce2;font-size:15px}
+.bio small,.note{display:block;margin-top:8px;color:var(--mu);font-size:12px;line-height:1.5}
+.bio a,.tb a{text-decoration:underline}
+.rrow.t{grid-template-columns:30px 1fr 96px 44px}
+.rrow.w{grid-template-columns:44px 1fr auto}
+.trk{margin-top:22px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.trk summary{padding:14px 0;font-weight:700;cursor:pointer;list-style:none}
+.trk summary::-webkit-details-marker{display:none}
+.trk summary::after{content:'＋';float:right;color:var(--mu)}
+.trk[open] summary::after{content:'−'}
+.tb{padding:0 0 14px}
+.timg{display:block;width:100%;max-height:260px;object-fit:contain;background:rgba(255,255,255,.93);border-radius:10px;padding:8px;margin-bottom:10px}
+.fchips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fchip{flex:0 0 auto;padding:8px 12px;border-radius:12px;border-left:4px solid var(--tc);font-weight:700;font-size:14px;cursor:pointer;background:var(--s1);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 32%,var(--s1)),var(--s1))}
+.fchip small{color:var(--mu);font-weight:400;margin-left:4px}
 </style>
 </head>
 <body>
@@ -150,7 +176,7 @@ footer{max-width:1180px;margin:28px auto 0;padding:0 16px;color:#6d6d76;font-siz
 /* ============ Config ============ */
 const API_J = 'https://api.jolpi.ca/ergast/f1';
 const API_O = 'https://api.openf1.org/v1';
-const SHOW_PHOTOS = false; // true = usa las fotos oficiales de formula1.com (revisar derechos antes de publicar)
+const FREE_PHOTOS = true; // fotos libres: solo se aceptan imágenes alojadas en Wikimedia Commons (licencias abiertas)
 const COLOR_OVERRIDES = { alpine: 'FF87BC' }; // colores que querés cambiar a mano (hex sin #)
 const FALLBACK = { mercedes:'00D7B6', ferrari:'ED1131', mclaren:'F47600', redbull:'4781D7', alpine:'FF87BC', astonmartin:'229971', williams:'1868DB', rb:'6C98FF', audi:'F50537', haas:'9C9FA2', cadillac:'909090' };
 const COMPOUND = { SOFT:['S','#ff3b3b'], MEDIUM:['M','#ffd23f'], HARD:['H','#f2f2f2'], INTERMEDIATE:['I','#3ddc84'], WET:['W','#4aa3ff'] };
@@ -202,7 +228,7 @@ function gpName(n = '') {
 /* ============ Estado ============ */
 const S = {
   races: [], weekends: [], dstd: [], cstd: [], o1: [], roster: {}, teamCol: {}, cache: {},
-  favs: ls.get('fos_favs', {}), nav: 0, panel: 'r', gp: {}, tok: 0, view: '', season: ''
+  favs: ls.get('fos_favs', {}), nav: 0, panel: 'r', gp: {}, tok: 0, view: '', season: '', photos: {}, pfile: {}, cur: ''
 };
 ['drivers', 'teams', 'gps'].forEach(k => { if (!Array.isArray(S.favs[k])) S.favs[k] = []; });
 const app = $('#app');
@@ -222,7 +248,7 @@ function buildWeekend(r) {
     s.end = s.o1 && s.o1.date_end ? new Date(s.o1.date_end) : new Date(s.start.getTime() + s.dur * 60000);
   });
   const L = r.Circuit.Location;
-  return { round: r.round, name: gpName(r.raceName), circuit: r.Circuit.circuitName, city: L.locality, country: L.country, flag: FLAGS[L.country] || '', sessions, url: r.url };
+  return { round: r.round, name: gpName(r.raceName), circuit: r.Circuit.circuitName, city: L.locality, country: L.country, flag: FLAGS[L.country] || '', sessions, url: r.url, circuitId: r.Circuit.circuitId, circuitUrl: r.Circuit.url };
 }
 const sessState = s => { const n = Date.now(); if (s.o1 && s.o1.is_cancelled) return 'cancelled'; return n < s.start ? 'upcoming' : n <= s.end ? 'live' : 'done'; };
 function currentWeekend() {
@@ -259,9 +285,85 @@ const favBtn = (type, key) => { const on = S.favs[type + 's'].includes(String(ke
 
 /* ============ Datos de sesión (OpenF1) ============ */
 const tyresHTML = t => (t || []).slice(-5).map(c => { const [l, col] = COMPOUND[c] || ['?', '#999']; return `<span class="ty" style="--c:${col}" title="${esc(c)}">${l}</span>`; }).join('');
-function avatar(r) {
-  const photo = SHOW_PHOTOS && r.photo ? `<img src="${esc(r.photo)}" loading="lazy" alt="" onerror="this.remove()">` : '';
-  return `<div class="av">${photo}<span>${esc(r.num)}</span></div>`;
+function avatar(r) { return `<div class="av" data-code="${esc(r.code || '')}"><span>${esc(r.num)}</span></div>`; }
+function applyPhotos() {
+  if (!FREE_PHOTOS) return;
+  document.querySelectorAll('.av[data-code]').forEach(a => {
+    const u = S.photos[a.dataset.code];
+    if (!u || a.dataset.bad || a.querySelector('img')) return;
+    const i = document.createElement('img'); i.src = u; i.alt = ''; i.loading = 'lazy';
+    i.onerror = () => { a.dataset.bad = '1'; i.remove(); };
+    a.prepend(i);
+  });
+}
+
+/* ============ Wikipedia / Commons (fotos libres y reseñas) ============ */
+const wkTitle = u => { try { return decodeURIComponent(new URL(u).pathname.split('/').pop()); } catch (e) { return ''; } };
+const wkTrim = (t, n) => { if (!t || t.length <= n) return t || ''; const c = t.slice(0, n), i = c.lastIndexOf('. '); return i > 120 ? c.slice(0, i + 1) : c.replace(/\s+\S*$/, '') + '…'; };
+function commonsFile(src) {
+  const m = src.match(/\/commons\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/([^\/]+)\//) || src.match(/\/commons\/[0-9a-f]\/[0-9a-f]{2}\/([^\/?]+)$/);
+  try { return m ? decodeURIComponent(m[1]) : ''; } catch (e) { return ''; }
+}
+const fileLink = f => f ? 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(f) : '';
+const TTL = 30 * 864e5;
+async function wikiEn(title) {
+  if (!title) return null;
+  const ck = 'fos_wen_' + title, c = ls.get(ck, null);
+  if (c && Date.now() - c.ts < TTL) return c;
+  const j = await fj(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, 2);
+  if (!j || !j.title) return c || null;
+  const src = (j.thumbnail && j.thumbnail.source) || '', free = /\/wikipedia\/commons\//.test(src);
+  const out = { ts: Date.now(), extract: j.extract || '', page: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || '', img: free ? src : '', file: free ? commonsFile(src) : '' };
+  ls.set(ck, out); return out;
+}
+async function wikiEs(title) {
+  if (!title) return null;
+  const ck = 'fos_wes_' + title, c = ls.get(ck, null);
+  if (c && Date.now() - c.ts < TTL) return c;
+  const ll = await fj(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=langlinks&lllang=es&redirects=1&format=json&formatversion=2&origin=*`, 2);
+  if (!ll) return c || null;
+  const pg = ll.query && ll.query.pages && ll.query.pages[0], t = pg && pg.langlinks && pg.langlinks[0] && pg.langlinks[0].title;
+  let out = { ts: Date.now(), extract: '', page: '' };
+  if (t) {
+    const j = await fj(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`, 2);
+    if (!j) return c || null;
+    if (j.extract) out = { ts: Date.now(), extract: j.extract, page: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || '' };
+  }
+  ls.set(ck, out); return out;
+}
+async function wikiBio(url) {
+  const t = wkTitle(url), [en, es] = await Promise.all([wikiEn(t), wikiEs(t)]);
+  const e = es && es.extract ? es : en;
+  return { text: wkTrim(e && e.extract, 520), page: (e && e.page) || '', es: !!(es && es.extract), en };
+}
+function bioHTML(b, info) {
+  if (!b || !b.text) return '';
+  const credit = info && info.file ? ` · Foto: <a href="${esc(fileLink(info.file))}" target="_blank" rel="noopener">Wikimedia Commons</a> (licencia libre)` : '';
+  return `<p>${esc(b.text)}</p><small>Fuente: <a href="${esc(b.page)}" target="_blank" rel="noopener">Wikipedia</a>${b.es ? '' : ' (en inglés)'}${credit}</small>`;
+}
+async function loadPhotos() {
+  if (!FREE_PHOTOS) return;
+  S.photos = ls.get('fos_ph', {}); S.pfile = ls.get('fos_phf', {}); applyPhotos();
+  const list = S.dstd.map(x => ({ code: x.Driver.code || x.Driver.familyName.slice(0, 3).toUpperCase(), url: x.Driver.url })).filter(x => x.url && !(x.code in S.photos));
+  let i = 0, changed = false;
+  const worker = async () => {
+    while (i < list.length) {
+      const it = list[i++], info = await wikiEn(wkTitle(it.url));
+      if (info) { S.photos[it.code] = info.img; if (info.file) S.pfile[it.code] = info.file; changed = true; if (info.img) applyPhotos(); }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (changed) { ls.set('fos_ph', S.photos); ls.set('fos_phf', S.pfile); }
+}
+async function jtotal(p) { const j = await fj(`${API_J}/${p}.json?limit=1`, 3); return j && j.MRData ? +j.MRData.total : null; }
+async function careerStats(kind, id) {
+  const ck = `fos_c${kind}_${id}`, c = ls.get(ck, null);
+  if (c && Date.now() - c.ts < 6 * 3600e3) return c.v;
+  const base = kind === 'd' ? 'drivers/' + id : 'constructors/' + id;
+  const keys = kind === 'd' ? ['results', 'results/1', 'results/2', 'results/3', 'qualifying/1'] : ['results/1', 'qualifying/1'];
+  const v = await Promise.all(keys.map(k => jtotal(base + '/' + k)));
+  if (v.some(x => x == null || isNaN(x))) return null;
+  ls.set(ck, { ts: Date.now(), v }); return v;
 }
 async function getSessionData(s) {
   if (!s.o1) return { rows: [], reason: 'nokey' };
@@ -285,7 +387,7 @@ async function getSessionData(s) {
     const ro = Object.values(S.roster).find(x => x.num === r.driver_number) || {};
     const code = d.name_acronym || ro.code || ('N' + r.driver_number);
     const team = d.team_name || ro.team || '';
-    return { pos: r.position, num: r.driver_number, code, first: d.first_name || ro.first || '', last: d.last_name || ro.last || code, team, tk: teamKey(team), photo: d.headshot_url || ro.photo,
+    return { pos: r.position, num: r.driver_number, code, first: d.first_name || ro.first || '', last: d.last_name || ro.last || code, team, tk: teamKey(team),
       dnf: r.dnf, dns: r.dns, dsq: r.dsq, laps: r.number_of_laps, duration: r.duration, gap: r.gap_to_leader, tyres: tyres[r.driver_number] || [] };
   });
   const out = { rows };
@@ -345,6 +447,19 @@ function gcard(w) {
   const next = w.sessions[w.sessions.length - 1];
   return `<div class="gcard${isPast(w) ? ' past' : ''}" style="--flag:${flagUrl(w)}" data-go="#/gp/${w.round}"><div class="r">R${w.round}</div><div class="t"><b>${esc(w.name)}${S.favs.gps.includes(w.round) ? ' <u>★</u>' : ''}</b><small>${esc(w.city)} · ${esc(w.circuit)}</small></div><div class="s">${datesStr(w)}</div></div>`;
 }
+function favStrip() {
+  const it = [];
+  S.favs.drivers.forEach(code => {
+    const x = S.dstd.find(s => (s.Driver.code || s.Driver.familyName.slice(0, 3).toUpperCase()) === code); if (!x) return;
+    const k = teamKey(x.Constructors && x.Constructors[0] ? x.Constructors[0].name : '');
+    it.push(`<a class="fchip" style="--tc:${teamColor(k)}" data-go="#/driver/${esc(code)}">★ ${esc(x.Driver.familyName)}<small>P${esc(x.position)} · ${esc(x.points)} pts</small></a>`);
+  });
+  S.favs.teams.forEach(id => {
+    const x = S.cstd.find(s => s.Constructor.constructorId === id); if (!x) return;
+    it.push(`<a class="fchip" style="--tc:${teamColor(teamKey(x.Constructor.name))}" data-go="#/team/${esc(id)}">★ ${esc(x.Constructor.name)}<small>P${esc(x.position)} · ${esc(x.points)} pts</small></a>`);
+  });
+  return it.length ? `<div class="ptitle" style="margin-top:16px">★ Tus favoritos</div><div class="fchips">${it.join('')}</div>` : '';
+}
 function viewHome() {
   S.view = 'home';
   const cur = currentWeekend();
@@ -359,6 +474,7 @@ function viewHome() {
     <p class="dates">${datesStr(cur)} · hora local</p>
     <div class="hchips">${weekendChips(cur)}</div>
   </div>
+  ${favStrip()}
   <div class="seg"><button data-panel="c" class="${S.panel === 'c' ? 'on' : ''}">Constructores</button><button data-panel="r" class="${S.panel === 'r' ? 'on' : ''}">Carreras</button><button data-panel="d" class="${S.panel === 'd' ? 'on' : ''}">Pilotos</button></div>
   <div class="cols" data-p="${S.panel}">
     <section class="panel p-c"><div class="ptitle">Campeonato de constructores</div>${S.cstd.map((x, i) => standRow('c', x, i)).join('') || emptyHTML('Sin datos', 'No se pudo cargar la tabla.', false)}</section>
@@ -384,7 +500,8 @@ function viewGP(round) {
   S.gp = { round: w.round, key: defaultSession(w), sub: 'final' };
   app.innerHTML = `<a class="back" data-back>‹ Volver</a>
   <div class="banner" style="--flag:${flagUrl(w)}">${favBtn('gp', w.round)}<div class="kick">Ronda ${w.round} · ${esc(w.country)}</div><h1>${esc(w.name)}</h1><p class="loc">${esc(w.circuit)} · ${esc(w.city)}</p></div>
-  <div class="tabs" id="tabs"></div><div id="subs"></div><div class="status" id="status"></div><div id="list"></div>`;
+  <div class="tabs" id="tabs"></div><div id="subs"></div><div class="status" id="status"></div><div id="list"></div>
+  <details class="trk" id="trk"><summary>La pista · ${esc(w.circuit)}</summary><div class="tb" id="trkbody"></div></details>`;
   renderTabs(); loadList();
 }
 function renderTabs() {
@@ -419,51 +536,110 @@ async function loadList() {
 const back = () => '<a class="back" data-back>‹ Volver</a>';
 function notFound() { app.innerHTML = back() + emptyHTML('No encontrado', 'Ese dato no está disponible.', false); }
 function wikiLink(u) { return u ? `<a class="link" href="${esc(u)}" target="_blank" rel="noopener">Ver en Wikipedia ↗</a>` : ''; }
+const setT = (id, v) => { const e = $(id); if (e) e.textContent = v; };
 async function viewDriver(code) {
-  S.view = 'driver';
+  S.view = 'driver'; S.cur = 'd:' + code;
   const std = S.dstd.find(x => (x.Driver.code || x.Driver.familyName.slice(0, 3).toUpperCase()) === code), ro = S.roster[code];
   if (!std && !ro) return notFound();
   const d = std ? std.Driver : {}, c = std && std.Constructors && std.Constructors[0];
   const team = c ? c.name : ro.team, tk = teamKey(team), num = ro ? ro.num : d.permanentNumber;
-  const first = d.givenName || ro.first, last = d.familyName || ro.last;
+  const first = d.givenName || (ro && ro.first), last = d.familyName || (ro && ro.last);
   const age = d.dateOfBirth ? Math.floor((Date.now() - new Date(d.dateOfBirth)) / 31557600000) : null;
   app.innerHTML = `<div class="dpage" style="--tc:${teamColor(tk)}">${back()}
-    <div class="dhead"><div class="big">${esc(num || '')}</div>${avatar({ num: num || '', photo: ro && ro.photo })}
+    <div class="dhead"><div class="dph" id="dph"></div><div class="big">${esc(num || '')}</div>${avatar({ num: num || '', code })}
       <h2><small>${esc(first)}</small>${esc(last)}</h2>${favBtn('driver', code)}</div>
     <p style="color:#d0d0d6;margin:2px 4px 0">${esc(team)}${d.nationality ? ' · ' + esc(NAT[d.nationality] || d.nationality) : ''}${age ? ' · ' + age + ' años' : ''}</p>
-    <div class="stats" id="stats">
+    <div class="stats">
       <div class="stat"><b>${std ? '#' + std.position : '—'}</b><small>Campeonato</small></div>
       <div class="stat"><b>${std ? esc(std.points) : '—'}</b><small>Puntos</small></div>
       <div class="stat"><b>${std ? esc(std.wins) : '—'}</b><small>Victorias</small></div>
       <div class="stat"><b id="s-pod">…</b><small>Podios</small></div>
       <div class="stat"><b id="s-pol">…</b><small>Poles</small></div>
       <div class="stat"><b id="s-dnf">…</b><small>Abandonos</small></div></div>
+    <div class="ptitle">Toda su carrera en la F1</div>
+    <div class="stats c4">
+      <div class="stat"><b id="c-gp">…</b><small>Carreras</small></div>
+      <div class="stat"><b id="c-win">…</b><small>Victorias</small></div>
+      <div class="stat"><b id="c-pod">…</b><small>Podios</small></div>
+      <div class="stat"><b id="c-pol">…</b><small>Poles</small></div></div>
+    <div class="ptitle">Sobre ${esc(last)}</div><div class="bio" id="bio"><div class="sk"></div></div>
     <div class="ptitle">Temporada ${esc(S.season)}</div><div id="res"><div class="sk"></div><div class="sk"></div></div>
     ${wikiLink(d.url)}</div>`;
-  if (!std) { $('#res').innerHTML = ''; return; }
+  const mine = () => S.view === 'driver' && S.cur === 'd:' + code;
+  wikiBio(d.url).then(bi => {
+    if (!mine()) return;
+    const en = bi.en, h = bioHTML(bi, en);
+    if ($('#bio')) $('#bio').innerHTML = h || '<div class="empty">Sin reseña disponible.</div>';
+    if (en && en.img && $('#dph')) $('#dph').innerHTML = `<img src="${esc(en.img)}" alt="" onerror="this.remove()">`;
+  });
+  if (d.driverId) careerStats('d', d.driverId).then(r => {
+    if (!mine()) return;
+    const v = r ? [r[0], r[1], r[1] + r[2] + r[3], r[4]] : ['—', '—', '—', '—'];
+    ['gp', 'win', 'pod', 'pol'].forEach((k, i) => setT('#c-' + k, v[i]));
+  });
+  if (!std) { if ($('#res')) $('#res').innerHTML = ''; return; }
   const j = await fj(`${API_J}/current/drivers/${d.driverId}/results.json?limit=40`);
-  if (S.view !== 'driver' || !$('#res')) return;
+  if (!mine() || !$('#res')) return;
   const rs = ((j && j.MRData.RaceTable.Races) || []).filter(r => r.Results && r.Results[0]).map(r => { const x = r.Results[0]; return { round: r.round, name: gpName(r.raceName).replace('GP de ', ''), grid: +x.grid, pos: +x.position, pt: x.positionText, pts: x.points, status: x.status }; });
   const fin = r => /^\d+$/.test(r.pt);
-  $('#s-pod').textContent = rs.filter(r => fin(r) && r.pos <= 3).length;
-  $('#s-pol').textContent = rs.filter(r => r.grid === 1).length;
-  $('#s-dnf').textContent = rs.filter(r => r.status !== 'Finished' && !/^\+\d+ Lap/.test(r.status)).length;
+  setT('#s-pod', rs.filter(r => fin(r) && r.pos <= 3).length);
+  setT('#s-pol', rs.filter(r => r.grid === 1).length);
+  setT('#s-dnf', rs.filter(r => r.status !== 'Finished' && !/^\+\d+ Lap/.test(r.status)).length);
   $('#res').innerHTML = rs.length ? rs.reverse().map(r => `<div class="rrow"><div class="rn">R${r.round}</div><div class="g">${esc(r.name)}<span style="width:${fin(r) ? Math.max(6, (22 - r.pos) / 21 * 100) : 0}%"></span></div><div class="p"><small>${r.grid ? 'P' + r.grid : 'PL'} →</small> ${fin(r) ? 'P' + r.pos : esc(r.pt)}</div><div class="pt">${esc(r.pts)}</div></div>`).join('') : '<div class="empty">Sin resultados cargados todavía.</div>';
 }
-function viewTeam(id) {
-  S.view = 'team';
+async function viewTeam(id) {
+  S.view = 'team'; S.cur = 't:' + id;
   const std = S.cstd.find(x => x.Constructor.constructorId === id);
   if (!std) return notFound();
   const c = std.Constructor, tk = teamKey(c.name);
   const drivers = S.dstd.filter(x => x.Constructors && x.Constructors.some(k => k.constructorId === id));
   app.innerHTML = `<div class="dpage" style="--tc:${teamColor(tk)}">${back()}
-    <div class="dhead"><div class="big">P${std.position}</div><h2><small>${esc(NAT[c.nationality] || c.nationality || '')}</small>${esc(c.name)}</h2>${favBtn('team', id)}</div>
+    <div class="dhead"><div class="dph" id="dph"></div><div class="big">P${std.position}</div><h2><small>${esc(NAT[c.nationality] || c.nationality || '')}</small>${esc(c.name)}</h2>${favBtn('team', id)}</div>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat"><b>#${std.position}</b><small>Campeonato</small></div>
       <div class="stat"><b>${esc(std.points)}</b><small>Puntos</small></div>
       <div class="stat"><b>${esc(std.wins)}</b><small>Victorias</small></div></div>
+    <div class="ptitle">Toda su historia en la F1</div>
+    <div class="stats c2"><div class="stat"><b id="c-win">…</b><small>Victorias</small></div><div class="stat"><b id="c-pol">…</b><small>Poles</small></div></div>
+    <div class="ptitle">Historia</div><div class="bio" id="bio"><div class="sk"></div></div>
     <div class="ptitle">Pilotos ${esc(S.season)}</div>${drivers.map((x, i) => standRow('d', x, i)).join('') || '<div class="empty">Sin pilotos cargados.</div>'}
+    <div class="ptitle" style="margin-top:14px">Carreras ${esc(S.season)} (sin sprints)</div><div id="res"><div class="sk"></div><div class="sk"></div></div>
     ${wikiLink(c.url)}</div>`;
+  const mine = () => S.view === 'team' && S.cur === 't:' + id;
+  wikiBio(c.url).then(bi => {
+    if (!mine()) return;
+    const en = bi.en, h = bioHTML(bi, en);
+    if ($('#bio')) $('#bio').innerHTML = h || '<div class="empty">Sin reseña disponible.</div>';
+    if (en && en.img && $('#dph')) $('#dph').innerHTML = `<img src="${esc(en.img)}" alt="" onerror="this.remove()">`;
+  });
+  careerStats('c', id).then(r => { if (!mine()) return; setT('#c-win', r ? r[0] : '—'); setT('#c-pol', r ? r[1] : '—'); });
+  const j = await fj(`${API_J}/current/constructors/${id}/results.json?limit=100`);
+  if (!mine() || !$('#res')) return;
+  const rs = ((j && j.MRData.RaceTable.Races) || []).filter(r => r.Results && r.Results.length).map(r => ({
+    round: r.round, name: gpName(r.raceName).replace('GP de ', ''),
+    pos: r.Results.map(x => /^\d+$/.test(x.positionText) ? 'P' + x.position : x.positionText).join(' · '),
+    pts: Number(r.Results.reduce((a, x) => a + (+x.points || 0), 0).toFixed(1))
+  }));
+  $('#res').innerHTML = rs.length ? rs.reverse().map(r => `<div class="rrow t"><div class="rn">R${esc(r.round)}</div><div class="g">${esc(r.name)}</div><div class="p">${esc(r.pos)}</div><div class="pt">${r.pts}</div></div>`).join('') : '<div class="empty">Sin resultados cargados todavía.</div>';
+}
+async function loadTrack() {
+  const w = S.curW, box = $('#trkbody'); if (!w || !box || box.dataset.done) return;
+  box.dataset.done = '1'; box.innerHTML = '<div class="sk"></div>';
+  const t = wkTitle(w.circuitUrl);
+  const [en, es, win] = await Promise.all([wikiEn(t), wikiEs(t), fj(`${API_J}/circuits/${w.circuitId}/results/1.json?limit=100`)]);
+  if (S.view !== 'gp' || S.curW !== w || !$('#trkbody')) return;
+  const races = (win && win.MRData && win.MRData.RaceTable.Races || []).filter(r => r.Results && r.Results[0]);
+  const e = es && es.extract ? es : en, text = wkTrim(e && e.extract, 480);
+  const cnt = {};
+  races.forEach(r => { const n = r.Results[0].Driver.givenName + ' ' + r.Results[0].Driver.familyName; cnt[n] = (cnt[n] || 0) + 1; });
+  const top = Object.entries(cnt).sort((x, y) => y[1] - x[1])[0], last = races.slice(-8).reverse();
+  const credit = en && en.file ? ` · Imagen: <a href="${esc(fileLink(en.file))}" target="_blank" rel="noopener">Wikimedia Commons</a> (licencia libre)` : '';
+  $('#trkbody').innerHTML =
+    (en && en.img ? `<img class="timg" src="${esc(en.img)}" alt="${esc(w.circuit)}" loading="lazy" onerror="this.remove()">` : '') +
+    (text ? `<div class="bio"><p>${esc(text)}</p><small>Fuente: <a href="${esc((e && e.page) || '')}" target="_blank" rel="noopener">Wikipedia</a>${es && es.extract ? '' : ' (en inglés)'}${credit}</small></div>` : '') +
+    (races.length
+      ? `<div class="ptitle" style="margin-top:12px">Últimos ganadores aquí</div>${last.map(r => `<div class="rrow w"><div class="rn">${esc(r.season)}</div><div class="g">${esc(r.Results[0].Driver.givenName)} ${esc(r.Results[0].Driver.familyName)}</div><div class="p"><small>${esc(r.Results[0].Constructor.name)}</small></div></div>`).join('')}<p class="note">${races.length} Grandes Premios disputados${top ? ' · más victorias: ' + esc(top[0]) + ' (' + top[1] + ')' : ''}</p>`
+      : '<div class="empty" style="margin-top:8px">Circuito nuevo: todavía no hay historial.</div>');
 }
 
 /* ============ Router y eventos ============ */
@@ -484,6 +660,7 @@ document.addEventListener('click', e => {
   const g = t.closest('[data-go]'); if (g) location.hash = g.dataset.go;
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter') { const g = e.target.closest && e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go; } });
+document.addEventListener('toggle', e => { if (e.target.id === 'trk' && e.target.open) loadTrack(); }, true);
 setInterval(() => {
   if (document.hidden) return;
   if (S.view === 'home') viewHome();
@@ -510,13 +687,15 @@ async function init() {
   S.dstd = first ? first.DriverStandings : []; S.cstd = firstC ? firstC.ConstructorStandings : [];
   (Array.isArray(ros) ? ros : []).forEach(d => {
     const tk = teamKey(d.team_name); if (d.team_colour) S.teamCol[tk] = d.team_colour;
-    S.roster[d.name_acronym] = { code: d.name_acronym, num: d.driver_number, first: d.first_name, last: d.last_name, team: d.team_name, tk, photo: d.headshot_url };
+    S.roster[d.name_acronym] = { code: d.name_acronym, num: d.driver_number, first: d.first_name, last: d.last_name, team: d.team_name, tk };
   });
   const sess = await fj(`${API_O}/sessions?year=${S.season}`);
   S.o1 = Array.isArray(sess) ? sess : [];
   S.weekends = S.races.map(buildWeekend);
-  $('#foot').innerHTML = `Horarios en tu hora local (${esc(Intl.DateTimeFormat().resolvedOptions().timeZone)}).<br>Datos: Jolpica-F1 y OpenF1. Proyecto no oficial, sin relación con Formula 1.`;
+  $('#foot').innerHTML = `Horarios en tu hora local (${esc(Intl.DateTimeFormat().resolvedOptions().timeZone)}).<br>Datos: Jolpica-F1 y OpenF1. Fotos y reseñas: Wikipedia / Wikimedia Commons (licencias libres). Proyecto no oficial, sin relación con Formula 1.`;
   route();
+  new MutationObserver(() => applyPhotos()).observe(app, { childList: true, subtree: true });
+  loadPhotos();
 }
 init();
 </script>
