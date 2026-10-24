@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e0e10">
+<title>F-One Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0e10;--s1:#17171a;--s2:#1e1e22;--line:rgba(255,255,255,.08);--tx:#f3f3f4;--mu:#8e8e98;--red:#e10600;--gold:#ffc933;--tc:#8e8e98}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--tx);font-family:'Titillium Web',system-ui,-apple-system,Segoe UI,sans-serif}
+body{min-height:100vh;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[data-go],[data-tab],[data-sub],[data-panel]{cursor:pointer}
+.top{position:sticky;top:0;z-index:20;height:52px;display:flex;align-items:center;padding:0 16px;background:rgba(14,14,16,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-style:italic;letter-spacing:.5px;font-size:21px}
+.logo .bar{width:6px;height:22px;background:var(--red);transform:skewX(-18deg);border-radius:1px}
+.logo em{font-style:italic;color:var(--red)}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 14px 0}
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:18px;min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 16px;background:var(--s1);isolation:isolate;border:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:0;background:var(--flag) center/cover;opacity:.6;z-index:-2;filter:blur(1px)}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,14,16,.25) 0%,rgba(14,14,16,.94) 88%);z-index:-1}
+.kick{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:#d7d7dc;font-weight:600}
+.hero h1,.banner h1{font-size:clamp(28px,6vw,46px);font-weight:900;font-style:italic;line-height:1.05;margin:6px 0 4px;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.loc{color:#e5e5ea;font-size:15px}
+.dates{color:var(--mu);font-size:13px;margin-top:2px}
+.hchips{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.hero .fav,.banner .fav{position:absolute;top:10px;right:10px}
+.fav{width:40px;height:40px;border-radius:50%;font-size:22px;line-height:40px;background:rgba(0,0,0,.35);border:1px solid var(--line);color:#cfcfd6}
+.fav.on{color:var(--gold);border-color:rgba(255,201,51,.5)}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(255,255,255,.1);color:#e9e9ee;border:1px solid var(--line)}
+.chip.live{background:rgba(225,6,0,.16);border-color:rgba(225,6,0,.55);color:#ff6a63}
+.chip.live i{width:9px;height:9px;border-radius:50%;background:var(--red);animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.12}}
+/* home columns */
+.seg{display:flex;gap:6px;margin:16px 0 12px;background:var(--s1);padding:4px;border-radius:12px;border:1px solid var(--line)}
+.seg button{flex:1;padding:9px 4px;border-radius:9px;color:var(--mu);font-weight:600;font-size:14px}
+.seg button.on{background:var(--tx);color:#111}
+.cols .panel{display:none}
+.cols[data-p=c] .p-c,.cols[data-p=r] .p-r,.cols[data-p=d] .p-d{display:block}
+.ptitle{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);font-weight:600;margin:6px 2px 8px}
+@media(min-width:1000px){
+ .seg{display:none}
+ .cols{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:18px;margin-top:20px}
+ .cols .panel{display:block!important}
+}
+.srow{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:12px;background:var(--s1);border-left:4px solid var(--tc);cursor:pointer;
+ background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 22%,var(--s1)),var(--s1) 65%)}
+.srow:hover{filter:brightness(1.15)}
+.srow .n{width:24px;text-align:center;font-weight:700;color:var(--mu)}
+.srow .nm{flex:1;min-width:0;line-height:1.15}
+.srow .nm b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .nm small{color:var(--mu);font-size:12px}
+.srow .pt{font-weight:900;font-size:18px;font-variant-numeric:tabular-nums}
+.srow .pt small{font-size:11px;font-weight:400;color:var(--mu);margin-left:2px}
+.gcard{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:14px;background:var(--s1);border:1px solid var(--line);isolation:isolate;cursor:pointer}
+.gcard::before{content:"";position:absolute;inset:0;background:var(--flag) center/cover;opacity:.22;z-index:-2}
+.gcard::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(23,23,26,.55),var(--s1) 85%);z-index:-1}
+.gcard .r{font-size:12px;color:var(--mu);width:34px;font-weight:600}
+.gcard .t{flex:1;min-width:0}
+.gcard .t b{display:block;font-weight:700}
+.gcard .t small{color:var(--mu);font-size:12px}
+.gcard .s{font-size:12px;color:var(--mu);text-align:right}
+.gcard u{text-decoration:none;color:var(--gold)}
+.gcard.past{opacity:.78}
+/* back + banner */
+.back{display:inline-flex;align-items:center;gap:6px;padding:8px 4px;color:var(--mu);font-weight:600;font-size:14px}
+.banner{position:relative;overflow:hidden;text-align:center;padding:22px 14px 18px;border-radius:16px;background:var(--s1);isolation:isolate;border:1px solid var(--line)}
+.banner::before{content:"";position:absolute;inset:0;background:var(--flag) center/cover;opacity:.5;z-index:-2;filter:blur(1px)}
+.banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,14,16,.3),rgba(14,14,16,.94));z-index:-1}
+.banner h1{font-size:clamp(24px,5vw,38px)}
+/* tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 2px 8px;position:sticky;top:52px;z-index:10;background:linear-gradient(var(--bg) 78%,transparent);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:7px 14px;border-radius:12px;background:var(--s1);border:1px solid var(--line);color:var(--mu);font-weight:700;font-size:14px;text-align:center;line-height:1.15}
+.tab small{display:block;font-size:10px;font-weight:400;opacity:.75;text-transform:capitalize}
+.tab.on{background:var(--tx);color:#111;border-color:var(--tx)}
+.tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:5px;animation:pulse 1.1s infinite}
+.subs{display:flex;gap:6px;padding:0 2px 8px}
+.sub{padding:5px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--mu);border:1px solid var(--line)}
+.sub.on{background:var(--tx);color:#111;border-color:var(--tx)}
+.status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 2px 10px;font-size:13px;color:var(--mu)}
+/* rows */
+.row{display:flex;align-items:center;gap:10px;padding:9px 12px 9px 8px;margin-bottom:6px;border-radius:12px;border-left:4px solid var(--tc);background:var(--s1);
+ background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 48%,var(--s1)),color-mix(in srgb,var(--tc) 10%,var(--s1)) 55%,var(--s1));cursor:pointer;transition:transform .12s}
+.row:hover{transform:translateX(2px)}
+.row .pos{width:28px;text-align:center;font-weight:900;font-size:17px;font-style:italic}
+.av{position:relative;flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid var(--tc);display:grid;place-items:center;font-weight:700;font-size:14px;overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.who{flex:1;min-width:0;line-height:1.1;display:flex;flex-direction:column}
+.who .fn{font-size:11px;color:#cfcfd6}
+.who .ln{font-weight:900;font-size:16px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .ln u{text-decoration:none;color:var(--gold);font-size:12px}
+.who .tm{font-size:11px;color:#b9b9c1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tim{text-align:right;line-height:1.15;min-width:74px}
+.tim b{display:block;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.tim small{font-size:11px;color:#c3c3ca;font-variant-numeric:tabular-nums}
+.tys{display:flex;gap:3px;width:62px;justify-content:flex-end;flex-wrap:wrap}
+.ty{width:19px;height:19px;border-radius:50%;border:2px solid var(--c);font-size:10px;font-weight:900;display:grid;place-items:center;background:rgba(0,0,0,.45);color:var(--c)}
+.row.lead{padding:16px 14px 16px 8px;border-left-width:6px;margin-bottom:10px;box-shadow:0 8px 30px -12px var(--tc)}
+.row.lead .pos{font-size:26px;width:36px}
+.row.lead .av{width:54px;height:54px;font-size:18px}
+.row.lead .ln{font-size:22px}
+.row.lead .tim b{font-size:19px}
+.row.out{opacity:.55}
+.favhead{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:4px 2px 8px;font-weight:600}
+.favline{height:1px;margin:10px 0 14px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)}
+.empty{padding:34px 16px;text-align:center;color:var(--mu);background:var(--s1);border-radius:14px;border:1px dashed var(--line);line-height:1.5}
+.empty b{display:block;color:var(--tx);font-size:17px;margin-bottom:4px}
+.btn{display:inline-block;margin-top:12px;padding:9px 16px;border-radius:10px;background:var(--tx);color:#111;font-weight:700;font-size:14px}
+.sk{height:56px;border-radius:12px;margin-bottom:6px;background:linear-gradient(90deg,var(--s1),var(--s2),var(--s1));background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+/* driver/team page */
+.dpage{--bgc:color-mix(in srgb,var(--tc) 38%,#0e0e10);margin:-14px -14px 0;padding:14px 14px 30px;min-height:100vh;background:linear-gradient(180deg,var(--bgc) 0%,#0e0e10 62%)}
+.dhead{position:relative;display:flex;align-items:center;gap:16px;padding:14px 4px 6px;overflow:hidden}
+.dhead .big{position:absolute;right:-6px;top:-18px;font-size:150px;font-weight:900;font-style:italic;color:var(--tc);opacity:.2;line-height:1;pointer-events:none}
+.dhead .av{width:84px;height:84px;font-size:30px;border-width:3px}
+.dhead h2{font-size:30px;font-weight:900;font-style:italic;line-height:1;text-transform:uppercase}
+.dhead h2 small{display:block;font-size:14px;font-weight:600;font-style:normal;color:#d7d7dc;text-transform:none;margin-bottom:2px}
+.dhead p{color:#d0d0d6;font-size:14px;margin-top:6px}
+.dhead .fav{margin-left:auto;flex:0 0 auto}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+@media(min-width:700px){.stats{grid-template-columns:repeat(6,1fr)}}
+.stat{padding:12px 8px;border-radius:12px;text-align:center;background:rgba(0,0,0,.32);border:1px solid var(--line);border-top:3px solid var(--tc)}
+.stat b{display:block;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums}
+.stat small{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:1px}
+.rrow{display:grid;grid-template-columns:30px 1fr 74px 40px;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;margin-bottom:5px;background:rgba(0,0,0,.28);font-size:14px}
+.rrow .rn{color:var(--mu);font-size:12px}
+.rrow .g{position:relative;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rrow .g span{display:block;height:3px;border-radius:2px;margin-top:4px;background:var(--tc)}
+.rrow .p{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.rrow .p small{color:var(--mu);font-weight:400}
+.rrow .pt{text-align:right;font-weight:900}
+.link{display:inline-block;margin-top:14px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);color:#dcdce2;font-size:14px;font-weight:600;background:rgba(0,0,0,.25)}
+footer{max-width:1180px;margin:28px auto 0;padding:0 16px;color:#6d6d76;font-size:12px;line-height:1.5;text-align:center}
+</style>
+</head>
+<body>
+<header class="top"><a class="logo" href="#/"><span class="bar"></span>F-ONE <em>SCORE</em></a></header>
+<div class="wrap"><main id="app"></main></div>
+<footer id="foot"></footer>
+<noscript><p style="padding:20px">Esta app necesita JavaScript.</p></noscript>
+<script>
+'use strict';
+/* ============ Config ============ */
+const API_J = 'https://api.jolpi.ca/ergast/f1';
+const API_O = 'https://api.openf1.org/v1';
+const SHOW_PHOTOS = false; // true = usa las fotos oficiales de formula1.com (revisar derechos antes de publicar)
+const COLOR_OVERRIDES = { alpine: 'FF87BC' }; // colores que querés cambiar a mano (hex sin #)
+const FALLBACK = { mercedes:'00D7B6', ferrari:'ED1131', mclaren:'F47600', redbull:'4781D7', alpine:'FF87BC', astonmartin:'229971', williams:'1868DB', rb:'6C98FF', audi:'F50537', haas:'9C9FA2', cadillac:'909090' };
+const COMPOUND = { SOFT:['S','#ff3b3b'], MEDIUM:['M','#ffd23f'], HARD:['H','#f2f2f2'], INTERMEDIATE:['I','#3ddc84'], WET:['W','#4aa3ff'] };
+const FLAGS = { Australia:'au', China:'cn', Japan:'jp', USA:'us', Canada:'ca', Monaco:'mc', Spain:'es', Austria:'at', UK:'gb', Belgium:'be', Hungary:'hu', Netherlands:'nl', Italy:'it', Azerbaijan:'az', Malaysia:'my', Singapore:'sg', Mexico:'mx', Brazil:'br', Qatar:'qa', UAE:'ae', Bahrain:'bh', 'Saudi Arabia':'sa' };
+const ES = { Australian:'Australia', Chinese:'China', Japanese:'Japón', Canadian:'Canadá', Monaco:'Mónaco', Austrian:'Austria', British:'Gran Bretaña', Belgian:'Bélgica', Hungarian:'Hungría', Dutch:'Países Bajos', Italian:'Italia', Spanish:'España', Azerbaijan:'Azerbaiyán', Bahrain:'Baréin', Singapore:'Singapur', 'United States':'Estados Unidos', 'Mexico City':'Ciudad de México', Brazilian:'Brasil', Qatar:'Catar', 'Abu Dhabi':'Abu Dabi', Saudi:'Arabia Saudita' };
+const NAT = { British:'Británico', Dutch:'Neerlandés', Monegasque:'Monegasco', Spanish:'Español', Australian:'Australiano', Italian:'Italiano', Argentine:'Argentino', French:'Francés', German:'Alemán', Canadian:'Canadiense', Thai:'Tailandés', Mexican:'Mexicano', Brazilian:'Brasileño', 'New Zealander':'Neozelandés', Finnish:'Finlandés', Japanese:'Japonés', Danish:'Danés', Chinese:'Chino', American:'Estadounidense', Swedish:'Sueco' };
+
+/* ============ Utilidades ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+async function fj(url, tries = 3) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url);
+      if (r.status === 429) { await sleep(900 * (i + 1)); continue; }
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { if (i === tries - 1) return null; await sleep(500); }
+  }
+  return null;
+}
+const fmtLap = s => { if (typeof s !== 'number') return '—'; const m = Math.floor(s / 60), r = (s - m * 60).toFixed(3).padStart(6, '0'); return m ? `${m}:${r}` : (s).toFixed(3); };
+const fmtRace = s => { if (typeof s !== 'number') return '—'; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = (s % 60).toFixed(3).padStart(6, '0'); return `${h}:${String(m).padStart(2, '0')}:${r}`; };
+const fmtGap = g => typeof g === 'number' ? '+' + g.toFixed(3) : (g ? String(g) : '');
+const fmtShort = d => d.toLocaleString('es-AR', { weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/[.,]/g, '');
+const fmtDay = d => d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }).replace('.', '');
+const fmtFull = d => d.toLocaleString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false });
+function rel(ms) { const m = Math.round(Math.abs(ms) / 60000); if (m < 60) return m + ' min'; const h = Math.floor(m / 60); if (h < 48) return h + ' h ' + (m % 60) + ' min'; return Math.round(h / 24) + ' días'; }
+function teamKey(n = '') {
+  n = n.toLowerCase();
+  if (n.includes('red bull')) return 'redbull';
+  if (n.includes('racing bulls') || n.startsWith('rb') || n.includes('visa') || n.includes('toro')) return 'rb';
+  if (n.includes('aston')) return 'astonmartin';
+  for (const k of ['mercedes', 'ferrari', 'mclaren', 'alpine', 'williams', 'haas', 'cadillac']) if (n.includes(k)) return k;
+  if (n.includes('audi') || n.includes('sauber')) return 'audi';
+  return n.replace(/[^a-z]/g, '') || 'x';
+}
+function gpName(n = '') {
+  const m = n.match(/^(.*?) Grand Prix(.*)$/);
+  if (!m) return n;
+  return 'GP de ' + (ES[m[1]] || m[1]) + m[2].replace(/^ in /, ' en ').replace('Malaysia', 'Malasia');
+}
+
+/* ============ Estado ============ */
+const S = {
+  races: [], weekends: [], dstd: [], cstd: [], o1: [], roster: {}, teamCol: {}, cache: {},
+  favs: ls.get('fos_favs', {}), nav: 0, panel: 'r', gp: {}, tok: 0, view: '', season: ''
+};
+['drivers', 'teams', 'gps'].forEach(k => { if (!Array.isArray(S.favs[k])) S.favs[k] = []; });
+const app = $('#app');
+const teamColor = k => '#' + (COLOR_OVERRIDES[k] || S.teamCol[k] || FALLBACK[k] || '888888');
+
+/* ============ Fin de semana ============ */
+function buildWeekend(r) {
+  const mk = (key, label, o, dur, type) => o ? { key, label, type, start: new Date(o.date + 'T' + (o.time || '00:00:00Z')), dur } : null;
+  const sessions = [
+    mk('fp1', 'Práctica 1', r.FirstPractice, 60, 'practice'), mk('fp2', 'Práctica 2', r.SecondPractice, 60, 'practice'),
+    mk('fp3', 'Práctica 3', r.ThirdPractice, 60, 'practice'), mk('sq', 'Clasif. Sprint', r.SprintQualifying, 45, 'quali'),
+    mk('sprint', 'Sprint', r.Sprint, 60, 'race'), mk('q', 'Clasificación', r.Qualifying, 60, 'quali'),
+    mk('race', 'Carrera', { date: r.date, time: r.time }, 120, 'race')
+  ].filter(Boolean).sort((a, b) => a.start - b.start);
+  sessions.forEach(s => {
+    s.o1 = S.o1.find(o => Math.abs(new Date(o.date_start) - s.start) < 25 * 60000) || null;
+    s.end = s.o1 && s.o1.date_end ? new Date(s.o1.date_end) : new Date(s.start.getTime() + s.dur * 60000);
+  });
+  const L = r.Circuit.Location;
+  return { round: r.round, name: gpName(r.raceName), circuit: r.Circuit.circuitName, city: L.locality, country: L.country, flag: FLAGS[L.country] || '', sessions, url: r.url };
+}
+const sessState = s => { const n = Date.now(); if (s.o1 && s.o1.is_cancelled) return 'cancelled'; return n < s.start ? 'upcoming' : n <= s.end ? 'live' : 'done'; };
+function currentWeekend() {
+  const n = Date.now();
+  return S.weekends.find(w => w.sessions[w.sessions.length - 1].end.getTime() + 3 * 3600e3 > n) || S.weekends[S.weekends.length - 1];
+}
+const isPast = w => w.sessions[w.sessions.length - 1].end.getTime() + 3 * 3600e3 < Date.now();
+const flagUrl = w => w.flag ? `url(https://flagcdn.com/w640/${w.flag}.png)` : 'none';
+function chipHTML(state, s) {
+  if (state === 'live') return '<span class="chip live"><i></i>En vivo</span>';
+  if (state === 'done') return '<span class="chip">Finalizado</span>';
+  if (state === 'cancelled') return '<span class="chip">Cancelada</span>';
+  return `<span class="chip">Arranca en ${rel(s.start - Date.now())}</span>`;
+}
+function weekendChips(w) {
+  const live = w.sessions.find(s => sessState(s) === 'live');
+  if (live) return `<span class="chip live"><i></i>En vivo · ${esc(live.label)}</span>`;
+  const next = w.sessions.find(s => s.start > Date.now());
+  if (next) return `<span class="chip">Próxima: ${esc(next.label)} en ${rel(next.start - Date.now())}</span>`;
+  return '<span class="chip">Finalizado</span>';
+}
+const datesStr = w => `${fmtDay(w.sessions[0].start)} – ${fmtDay(w.sessions[w.sessions.length - 1].start)}`;
+
+/* ============ Favoritos ============ */
+function toggleFav(id) {
+  const [type, key] = id.split(':'), arr = S.favs[type + 's'];
+  const i = arr.indexOf(key); i >= 0 ? arr.splice(i, 1) : arr.push(key);
+  ls.set('fos_favs', S.favs);
+  const on = i < 0;
+  document.querySelectorAll(`[data-fav="${id}"]`).forEach(b => { b.classList.toggle('on', on); b.textContent = on ? '★' : '☆'; });
+  if (S.view === 'home') viewHome(); else if (S.view === 'gp') loadList();
+}
+const favBtn = (type, key) => { const on = S.favs[type + 's'].includes(String(key)); return `<button class="fav${on ? ' on' : ''}" data-fav="${type}:${esc(key)}" aria-label="Favorito">${on ? '★' : '☆'}</button>`; };
+
+/* ============ Datos de sesión (OpenF1) ============ */
+const tyresHTML = t => (t || []).slice(-5).map(c => { const [l, col] = COMPOUND[c] || ['?', '#999']; return `<span class="ty" style="--c:${col}" title="${esc(c)}">${l}</span>`; }).join('');
+function avatar(r) {
+  const photo = SHOW_PHOTOS && r.photo ? `<img src="${esc(r.photo)}" loading="lazy" alt="" onerror="this.remove()">` : '';
+  return `<div class="av">${photo}<span>${esc(r.num)}</span></div>`;
+}
+async function getSessionData(s) {
+  if (!s.o1) return { rows: [], reason: 'nokey' };
+  const k = s.o1.session_key, ck = 'fos_sd_' + k;
+  if (S.cache[k]) return S.cache[k];
+  const old = Date.now() - s.end > 6 * 3600e3;
+  if (old) { const c = ls.get(ck, null); if (c) return (S.cache[k] = c); }
+  const [res, drv, st] = await Promise.all([
+    fj(`${API_O}/session_result?session_key=${k}`), fj(`${API_O}/drivers?session_key=${k}`), fj(`${API_O}/stints?session_key=${k}`)
+  ]);
+  if (!Array.isArray(res) || !res.length) return { rows: [], reason: 'empty' };
+  const dm = {};
+  (Array.isArray(drv) ? drv : []).forEach(d => {
+    dm[d.driver_number] = d;
+    const tk = teamKey(d.team_name); if (d.team_colour) S.teamCol[tk] = d.team_colour;
+  });
+  const tyres = {};
+  (Array.isArray(st) ? st : []).sort((a, b) => a.stint_number - b.stint_number).forEach(x => (tyres[x.driver_number] = tyres[x.driver_number] || []).push(x.compound));
+  const rows = res.map(r => {
+    const d = dm[r.driver_number] || {};
+    const ro = Object.values(S.roster).find(x => x.num === r.driver_number) || {};
+    const code = d.name_acronym || ro.code || ('N' + r.driver_number);
+    const team = d.team_name || ro.team || '';
+    return { pos: r.position, num: r.driver_number, code, first: d.first_name || ro.first || '', last: d.last_name || ro.last || code, team, tk: teamKey(team), photo: d.headshot_url || ro.photo,
+      dnf: r.dnf, dns: r.dns, dsq: r.dsq, laps: r.number_of_laps, duration: r.duration, gap: r.gap_to_leader, tyres: tyres[r.driver_number] || [] };
+  });
+  const out = { rows };
+  if (sessState(s) === 'done' && Date.now() - s.end > 40 * 60000) { S.cache[k] = out; if (old) ls.set(ck, out); }
+  return out;
+}
+function lastIdx(a) { for (let i = a.length - 1; i >= 0; i--) if (a[i] != null) return i; return -1; }
+function viewRows(s, rows) {
+  const sorted = [...rows].sort((a, b) => (typeof a.pos === 'number' ? a.pos : 999) - (typeof b.pos === 'number' ? b.pos : 999));
+  if (s.type === 'quali') {
+    const pre = s.key === 'sq' ? 'SQ' : 'Q';
+    if (S.gp.sub !== 'final') {
+      const i = { q1: 0, q2: 1, q3: 2 }[S.gp.sub];
+      const list = rows.filter(r => Array.isArray(r.duration) && r.duration[i] != null).sort((a, b) => a.duration[i] - b.duration[i]);
+      return list.map((r, n) => ({ ...r, pos: n + 1, time: fmtLap(r.duration[i]), sub: (n ? '+' + (r.duration[i] - list[0].duration[i]).toFixed(3) : pre + (i + 1)) }));
+    }
+    return sorted.map(r => {
+      const d = Array.isArray(r.duration) ? r.duration : [r.duration], i = lastIdx(d);
+      const g = Array.isArray(r.gap) ? r.gap[i] : r.gap;
+      return { ...r, time: i >= 0 ? fmtLap(d[i]) : '—', sub: i >= 0 ? `${pre}${i + 1}` + (r.pos !== 1 && typeof g === 'number' ? ' · +' + g.toFixed(3) : '') : '', out: i < 0 };
+    });
+  }
+  if (s.type === 'practice') {
+    return sorted.map(r => {
+      const d = Array.isArray(r.duration) ? r.duration[lastIdx(r.duration)] : r.duration;
+      const g = Array.isArray(r.gap) ? r.gap[lastIdx(r.gap)] : r.gap;
+      return { ...r, time: fmtLap(d), sub: r.pos === 1 ? (r.laps ? r.laps + ' vueltas' : '') : fmtGap(g) };
+    });
+  }
+  return sorted.map(r => {
+    const out = r.dnf ? 'DNF' : r.dns ? 'DNS' : r.dsq ? 'DSQ' : '';
+    const g = Array.isArray(r.gap) ? r.gap[lastIdx(r.gap)] : r.gap;
+    const time = out || (r.pos === 1 ? fmtRace(r.duration) : (fmtGap(g) || '—'));
+    return { ...r, time, sub: r.laps ? r.laps + ' v.' : '', out: !!out };
+  });
+}
+function rowHTML(r, lead) {
+  const fav = S.favs.drivers.includes(r.code);
+  return `<div class="row${lead ? ' lead' : ''}${r.out ? ' out' : ''}" style="--tc:${teamColor(r.tk)}" data-go="#/driver/${esc(r.code)}" role="button" tabindex="0">
+    <div class="pos">${esc(r.pos)}</div>${avatar(r)}
+    <div class="who"><span class="fn">${esc(r.first)}</span><span class="ln">${esc(r.last)}${fav ? ' <u>★</u>' : ''}</span><span class="tm">${esc(r.team)}</span></div>
+    <div class="tim"><b>${esc(r.time)}</b>${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</div>
+    <div class="tys">${tyresHTML(r.tyres)}</div></div>`;
+}
+const emptyHTML = (t, d, retry) => `<div class="empty"><b>${t}</b>${d}${retry ? '<br><button class="btn" data-retry>Reintentar</button>' : ''}</div>`;
+
+/* ============ Vista: Home ============ */
+function standRow(kind, x, i) {
+  if (kind === 'd') {
+    const d = x.Driver, code = d.code || d.familyName.slice(0, 3).toUpperCase(), c = x.Constructors && x.Constructors[0], tk = teamKey(c ? c.name : '');
+    return `<div class="srow" style="--tc:${teamColor(tk)}" data-go="#/driver/${esc(code)}"><div class="n">${x.position}</div><div class="nm"><b>${esc(d.givenName)} ${esc(d.familyName)}${S.favs.drivers.includes(code) ? ' <u style="color:var(--gold);text-decoration:none">★</u>' : ''}</b><small>${esc(c ? c.name : '')}</small></div><div class="pt">${esc(x.points)}<small>pts</small></div></div>`;
+  }
+  const c = x.Constructor, tk = teamKey(c.name);
+  return `<div class="srow" style="--tc:${teamColor(tk)}" data-go="#/team/${esc(c.constructorId)}"><div class="n">${x.position}</div><div class="nm"><b>${esc(c.name)}${S.favs.teams.includes(c.constructorId) ? ' <u style="color:var(--gold);text-decoration:none">★</u>' : ''}</b><small>${x.wins} victorias</small></div><div class="pt">${esc(x.points)}<small>pts</small></div></div>`;
+}
+function gcard(w) {
+  const next = w.sessions[w.sessions.length - 1];
+  return `<div class="gcard${isPast(w) ? ' past' : ''}" style="--flag:${flagUrl(w)}" data-go="#/gp/${w.round}"><div class="r">R${w.round}</div><div class="t"><b>${esc(w.name)}${S.favs.gps.includes(w.round) ? ' <u>★</u>' : ''}</b><small>${esc(w.city)} · ${esc(w.circuit)}</small></div><div class="s">${datesStr(w)}</div></div>`;
+}
+function viewHome() {
+  S.view = 'home';
+  const cur = currentWeekend();
+  const others = S.weekends.filter(w => w !== cur);
+  const next = others.filter(w => !isPast(w)), past = others.filter(isPast).reverse();
+  app.innerHTML = `
+  <div class="hero" style="--flag:${flagUrl(cur)}" data-go="#/gp/${cur.round}" role="button" tabindex="0">
+    ${favBtn('gp', cur.round)}
+    <div class="kick">${cur.sessions[0].start - Date.now() > 0 ? 'Próximo Gran Premio' : 'Semana de carrera'} · Ronda ${cur.round}</div>
+    <h1>${esc(cur.name)}</h1>
+    <p class="loc">${esc(cur.circuit)} · ${esc(cur.city)}</p>
+    <p class="dates">${datesStr(cur)} · hora local</p>
+    <div class="hchips">${weekendChips(cur)}</div>
+  </div>
+  <div class="seg"><button data-panel="c" class="${S.panel === 'c' ? 'on' : ''}">Constructores</button><button data-panel="r" class="${S.panel === 'r' ? 'on' : ''}">Carreras</button><button data-panel="d" class="${S.panel === 'd' ? 'on' : ''}">Pilotos</button></div>
+  <div class="cols" data-p="${S.panel}">
+    <section class="panel p-c"><div class="ptitle">Campeonato de constructores</div>${S.cstd.map((x, i) => standRow('c', x, i)).join('') || emptyHTML('Sin datos', 'No se pudo cargar la tabla.', false)}</section>
+    <section class="panel p-r">
+      ${next.length ? '<div class="ptitle">Próximas carreras</div>' + next.map(gcard).join('') : ''}
+      <div class="ptitle">Carreras anteriores</div>${past.map(gcard).join('')}
+    </section>
+    <section class="panel p-d"><div class="ptitle">Campeonato de pilotos</div>${S.dstd.map((x, i) => standRow('d', x, i)).join('') || emptyHTML('Sin datos', 'No se pudo cargar la tabla.', false)}</section>
+  </div>`;
+}
+
+/* ============ Vista: Fin de semana ============ */
+function defaultSession(w) {
+  const live = w.sessions.find(s => sessState(s) === 'live'); if (live) return live.key;
+  const done = w.sessions.filter(s => sessState(s) === 'done');
+  if (done.length) return done[done.length - 1].key;
+  return w.sessions[0].key;
+}
+function viewGP(round) {
+  const w = S.weekends.find(x => x.round == round);
+  if (!w) return notFound();
+  S.view = 'gp'; S.curW = w;
+  S.gp = { round: w.round, key: defaultSession(w), sub: 'final' };
+  app.innerHTML = `<a class="back" data-back>‹ Volver</a>
+  <div class="banner" style="--flag:${flagUrl(w)}">${favBtn('gp', w.round)}<div class="kick">Ronda ${w.round} · ${esc(w.country)}</div><h1>${esc(w.name)}</h1><p class="loc">${esc(w.circuit)} · ${esc(w.city)}</p></div>
+  <div class="tabs" id="tabs"></div><div id="subs"></div><div class="status" id="status"></div><div id="list"></div>`;
+  renderTabs(); loadList();
+}
+function renderTabs() {
+  const w = S.curW, cur = w.sessions.find(s => s.key === S.gp.key);
+  $('#tabs').innerHTML = w.sessions.map(s => {
+    const st = sessState(s);
+    return `<button class="tab${s.key === S.gp.key ? ' on' : ''}" data-tab="${s.key}">${st === 'live' ? '<span class="dot"></span>' : ''}${esc(s.label)}<small>${fmtShort(s.start)}</small></button>`;
+  }).join('');
+  $('#subs').innerHTML = cur && cur.type === 'quali' ? `<div class="subs">${['final', 'q1', 'q2', 'q3'].map(k => `<button class="sub${S.gp.sub === k ? ' on' : ''}" data-sub="${k}">${k === 'final' ? 'Final' : (cur.key === 'sq' ? 'SQ' : 'Q') + k.slice(1)}</button>`).join('')}</div>` : '';
+  const on = $('#tabs .tab.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+async function loadList() {
+  const w = S.curW, s = w.sessions.find(x => x.key === S.gp.key), box = $('#list'); if (!s || !box) return;
+  const st = sessState(s), my = ++S.tok;
+  $('#status').innerHTML = `${chipHTML(st, s)}<span>${esc(fmtFull(s.start))} hs (tu hora local)</span>`;
+  if (st === 'upcoming') { box.innerHTML = emptyHTML('Todavía no empezó', `Arranca en ${rel(s.start - Date.now())}.<br>Acá vas a ver las posiciones apenas haya datos.`, false); return; }
+  if (st === 'cancelled') { box.innerHTML = emptyHTML('Sesión cancelada', 'Esta sesión no se disputó.', false); return; }
+  if (!S.cache[s.o1 && s.o1.session_key]) box.innerHTML = '<div class="sk"></div>'.repeat(8);
+  const data = await getSessionData(s);
+  if (my !== S.tok) return;
+  if (!data.rows.length) {
+    box.innerHTML = st === 'live'
+      ? emptyHTML('Sesión en curso', 'Los datos en vivo llegan en la Fase 3. En el plan gratuito de OpenF1 los resultados aparecen unos 30 min después de terminar.', true)
+      : emptyHTML('Todavía no hay resultados', 'Se publican unos 30 minutos después de terminar la sesión. Probá de nuevo en un rato.', true);
+    return;
+  }
+  const rows = viewRows(s, data.rows), favs = rows.filter(r => S.favs.drivers.includes(r.code));
+  box.innerHTML = (favs.length ? `<div class="favhead">★ Tus favoritos</div>${favs.map(r => rowHTML(r, false)).join('')}<div class="favline"></div>` : '') + rows.map((r, i) => rowHTML(r, i === 0)).join('');
+}
+
+/* ============ Vista: Piloto / Escudería ============ */
+const back = () => '<a class="back" data-back>‹ Volver</a>';
+function notFound() { app.innerHTML = back() + emptyHTML('No encontrado', 'Ese dato no está disponible.', false); }
+function wikiLink(u) { return u ? `<a class="link" href="${esc(u)}" target="_blank" rel="noopener">Ver en Wikipedia ↗</a>` : ''; }
+async function viewDriver(code) {
+  S.view = 'driver';
+  const std = S.dstd.find(x => (x.Driver.code || x.Driver.familyName.slice(0, 3).toUpperCase()) === code), ro = S.roster[code];
+  if (!std && !ro) return notFound();
+  const d = std ? std.Driver : {}, c = std && std.Constructors && std.Constructors[0];
+  const team = c ? c.name : ro.team, tk = teamKey(team), num = ro ? ro.num : d.permanentNumber;
+  const first = d.givenName || ro.first, last = d.familyName || ro.last;
+  const age = d.dateOfBirth ? Math.floor((Date.now() - new Date(d.dateOfBirth)) / 31557600000) : null;
+  app.innerHTML = `<div class="dpage" style="--tc:${teamColor(tk)}">${back()}
+    <div class="dhead"><div class="big">${esc(num || '')}</div>${avatar({ num: num || '', photo: ro && ro.photo })}
+      <h2><small>${esc(first)}</small>${esc(last)}</h2>${favBtn('driver', code)}</div>
+    <p style="color:#d0d0d6;margin:2px 4px 0">${esc(team)}${d.nationality ? ' · ' + esc(NAT[d.nationality] || d.nationality) : ''}${age ? ' · ' + age + ' años' : ''}</p>
+    <div class="stats" id="stats">
+      <div class="stat"><b>${std ? '#' + std.position : '—'}</b><small>Campeonato</small></div>
+      <div class="stat"><b>${std ? esc(std.points) : '—'}</b><small>Puntos</small></div>
+      <div class="stat"><b>${std ? esc(std.wins) : '—'}</b><small>Victorias</small></div>
+      <div class="stat"><b id="s-pod">…</b><small>Podios</small></div>
+      <div class="stat"><b id="s-pol">…</b><small>Poles</small></div>
+      <div class="stat"><b id="s-dnf">…</b><small>Abandonos</small></div></div>
+    <div class="ptitle">Temporada ${esc(S.season)}</div><div id="res"><div class="sk"></div><div class="sk"></div></div>
+    ${wikiLink(d.url)}</div>`;
+  if (!std) { $('#res').innerHTML = ''; return; }
+  const j = await fj(`${API_J}/current/drivers/${d.driverId}/results.json?limit=40`);
+  if (S.view !== 'driver' || !$('#res')) return;
+  const rs = ((j && j.MRData.RaceTable.Races) || []).filter(r => r.Results && r.Results[0]).map(r => { const x = r.Results[0]; return { round: r.round, name: gpName(r.raceName).replace('GP de ', ''), grid: +x.grid, pos: +x.position, pt: x.positionText, pts: x.points, status: x.status }; });
+  const fin = r => /^\d+$/.test(r.pt);
+  $('#s-pod').textContent = rs.filter(r => fin(r) && r.pos <= 3).length;
+  $('#s-pol').textContent = rs.filter(r => r.grid === 1).length;
+  $('#s-dnf').textContent = rs.filter(r => r.status !== 'Finished' && !/^\+\d+ Lap/.test(r.status)).length;
+  $('#res').innerHTML = rs.length ? rs.reverse().map(r => `<div class="rrow"><div class="rn">R${r.round}</div><div class="g">${esc(r.name)}<span style="width:${fin(r) ? Math.max(6, (22 - r.pos) / 21 * 100) : 0}%"></span></div><div class="p"><small>${r.grid ? 'P' + r.grid : 'PL'} →</small> ${fin(r) ? 'P' + r.pos : esc(r.pt)}</div><div class="pt">${esc(r.pts)}</div></div>`).join('') : '<div class="empty">Sin resultados cargados todavía.</div>';
+}
+function viewTeam(id) {
+  S.view = 'team';
+  const std = S.cstd.find(x => x.Constructor.constructorId === id);
+  if (!std) return notFound();
+  const c = std.Constructor, tk = teamKey(c.name);
+  const drivers = S.dstd.filter(x => x.Constructors && x.Constructors.some(k => k.constructorId === id));
+  app.innerHTML = `<div class="dpage" style="--tc:${teamColor(tk)}">${back()}
+    <div class="dhead"><div class="big">P${std.position}</div><h2><small>${esc(NAT[c.nationality] || c.nationality || '')}</small>${esc(c.name)}</h2>${favBtn('team', id)}</div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><b>#${std.position}</b><small>Campeonato</small></div>
+      <div class="stat"><b>${esc(std.points)}</b><small>Puntos</small></div>
+      <div class="stat"><b>${esc(std.wins)}</b><small>Victorias</small></div></div>
+    <div class="ptitle">Pilotos ${esc(S.season)}</div>${drivers.map((x, i) => standRow('d', x, i)).join('') || '<div class="empty">Sin pilotos cargados.</div>'}
+    ${wikiLink(c.url)}</div>`;
+}
+
+/* ============ Router y eventos ============ */
+function route() {
+  const [a, b] = location.hash.replace(/^#\/?/, '').split('/');
+  if (a === 'gp') viewGP(b); else if (a === 'driver') viewDriver(decodeURIComponent(b || '')); else if (a === 'team') viewTeam(decodeURIComponent(b || '')); else viewHome();
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => { S.nav++; route(); });
+document.addEventListener('click', e => {
+  const t = e.target;
+  const f = t.closest('[data-fav]'); if (f) { e.preventDefault(); e.stopPropagation(); toggleFav(f.dataset.fav); return; }
+  const tab = t.closest('[data-tab]'); if (tab) { S.gp.key = tab.dataset.tab; S.gp.sub = 'final'; renderTabs(); loadList(); return; }
+  const sub = t.closest('[data-sub]'); if (sub) { S.gp.sub = sub.dataset.sub; renderTabs(); loadList(); return; }
+  const p = t.closest('[data-panel]'); if (p) { S.panel = p.dataset.panel; document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b === p)); $('.cols').dataset.p = S.panel; return; }
+  if (t.closest('[data-back]')) { S.nav > 0 ? history.back() : (location.hash = '#/'); return; }
+  if (t.closest('[data-retry]')) { loadList(); return; }
+  const g = t.closest('[data-go]'); if (g) location.hash = g.dataset.go;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter') { const g = e.target.closest && e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go; } });
+setInterval(() => {
+  if (document.hidden) return;
+  if (S.view === 'home') viewHome();
+  else if (S.view === 'gp' && S.curW) {
+    const s = S.curW.sessions.find(x => x.key === S.gp.key), st = s && sessState(s);
+    renderTabs();
+    if (st === 'live' || (st === 'done' && Date.now() - s.end < 2 * 3600e3)) loadList();
+  }
+}, 60000);
+
+/* ============ Arranque ============ */
+async function init() {
+  app.innerHTML = '<div class="sk" style="height:210px;border-radius:18px"></div><div class="sk" style="margin-top:14px"></div><div class="sk"></div><div class="sk"></div>';
+  const [sch, ds, cs, ros, o1] = await Promise.all([
+    fj(`${API_J}/current.json?limit=40`), fj(`${API_J}/current/driverstandings.json`), fj(`${API_J}/current/constructorstandings.json`),
+    fj(`${API_O}/drivers?session_key=latest`), null
+  ]);
+  if (!sch || !sch.MRData.RaceTable.Races.length) {
+    app.innerHTML = emptyHTML('No se pudo cargar el calendario', 'Revisá tu conexión y volvé a intentar.', true).replace('data-retry', 'onclick="location.reload()"');
+    return;
+  }
+  S.season = sch.MRData.RaceTable.season; S.races = sch.MRData.RaceTable.Races;
+  const first = ds && ds.MRData.StandingsTable.StandingsLists[0], firstC = cs && cs.MRData.StandingsTable.StandingsLists[0];
+  S.dstd = first ? first.DriverStandings : []; S.cstd = firstC ? firstC.ConstructorStandings : [];
+  (Array.isArray(ros) ? ros : []).forEach(d => {
+    const tk = teamKey(d.team_name); if (d.team_colour) S.teamCol[tk] = d.team_colour;
+    S.roster[d.name_acronym] = { code: d.name_acronym, num: d.driver_number, first: d.first_name, last: d.last_name, team: d.team_name, tk, photo: d.headshot_url };
+  });
+  const sess = await fj(`${API_O}/sessions?year=${S.season}`);
+  S.o1 = Array.isArray(sess) ? sess : [];
+  S.weekends = S.races.map(buildWeekend);
+  $('#foot').innerHTML = `Horarios en tu hora local (${esc(Intl.DateTimeFormat().resolvedOptions().timeZone)}).<br>Datos: Jolpica-F1 y OpenF1. Proyecto no oficial, sin relación con Formula 1.`;
+  route();
+}
+init();
+</script>
+</body>
+</html>
